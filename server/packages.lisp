@@ -11,9 +11,12 @@
 	   :path
            :make-url
 	   :register-url
+	   :unregister-url
+	   :clear-registered-urls
 	   :show-registered-urls
 	   :get-registered-urls
 	   :match
 	   :find-match-for
 	   :build-url
-	   :build-url-for))
+	   :build-url-for
+	   :defaction))

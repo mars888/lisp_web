@@ -31,6 +31,12 @@
   (declare (type url url))
   (setf (gethash (name url) *registered-urls*) url))
 
+(defun unregister-url (name)
+  (remhash name *registered-urls*))
+
+(defun clear-registered-urls ()
+  (clrhash *registered-urls*))
+
 (defun show-registered-urls ()
   (loop for url being the hash-values of *registered-urls* do
     (format t "~A~%" url)))
@@ -105,4 +111,43 @@
     (unless url
       (error (format nil "No URL with name ~A" name)))
     (build-url url args)))
+
+
+(defmacro defaction (name (&optional (var-name (gensym "varname") var-name-given-p)) url-parts &body body)
+  `(progn (defun ,name (,var-name)
+	    ,(unless var-name-given-p 
+		     `(declare (ignore ,var-name)))
+	    ,@body)
+	  (register-url (make-url :name ,(string-downcase (symbol-name name)) :handler ',name :path ',url-parts))))
+
+
+(defaction registered-urls () ("registered-urls")
+  (cl-who:with-html-output-to-string (s nil :indent t)
+    (:table
+     (:tr
+      (:th "Name")
+      (:th "Handler")
+      (:th "Path")
+      (:th "Unregister"))
+     (loop for url being the hash-values of *registered-urls* do
+	  (cl-who:htm
+	   (:tr
+	    (:td (cl-who:str (name url)))
+	    (:td (cl-who:str (handler url)))
+	    (:td (cl-who:str (path url)))
+	    (:td (:a :href (build-url-for "do-unregister-url" :name (name url)) "Unregister"))))))))
+
+(defaction registered-urls-name (vars) ("registered-urls" :name)
+  (let* ((name (gethash "name" vars))
+	 (url  (gethash name *registered-urls*)))
+    (cl-who:with-html-output-to-string (s)
+      (if url
+	  (cl-who:htm "Found url " (:strong (cl-who:str (name url))))
+	  (format s "No URL found with name ~A" name)))))
+
+(defaction do-unregister-url (vars) ("unregister-url" :name)
+  (unregister-url (gethash "name" vars))
+  (cl-who:with-html-output-to-string (s)
+    "URL " (cl-who:str (gethash "name" vars)) " unregistered. Go " (:a :href (build-url-for "registered-urls") "back")))
+
 

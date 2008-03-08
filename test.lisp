@@ -1,5 +1,6 @@
 
 
+#|
 (defun handle-stuff (vars)
   (declare (ignore vars))
   "foo-bar")
@@ -23,3 +24,8 @@
 	  (:br)
 	  "Book with ID: " (:strong (cl-who:str id)))))))
 (server-url:register-url (server-url:make-url :name "book-show" :handler 'book-show :path '("book" :id)))
+|#
+
+(server-url:defaction action-test (vars) ("action-test" :id)
+  (format nil "action-test called with: ~A" (gethash "id" vars)))
+
