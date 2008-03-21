@@ -20,3 +20,10 @@
 	   :build-url
 	   :build-url-for
 	   :defaction))
+
+(defpackage server-config
+  (:use :cl)
+  (:export :load-config
+	   :print-config
+	   :has-item
+	   :get-item))

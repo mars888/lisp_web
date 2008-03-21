@@ -5,6 +5,7 @@
 (defvar *hunchentoot-dispatch-table* '(main-handler))
 
 (defun start-server (&key (port 8080))
+  (server-config:load-config "config.ini")
   (setf *server* (hunchentoot:start-server :port port))
   (setf hunchentoot:*dispatch-table* *hunchentoot-dispatch-table*)
   (when *debug-mode*
