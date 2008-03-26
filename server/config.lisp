@@ -4,7 +4,15 @@
 (defstruct config
   (items (make-hash-table :test 'equal) :type hash-table))
 
+(defconstant +default-config-name+ "config.ini")
+(defvar *config-loaded* nil "Is a config loaded?")
 (defvar *config* (make-config))
+
+(defun config-loaded-p ()
+  *config-loaded*)
+
+(defun load-default-config ()
+  (load-config +default-config-name+))
 
 (defun load-config (filename)
   (let ((config (make-config)))
@@ -23,6 +31,7 @@
 			     (subseq line (1+ split-point)))))
 	     ;; (format t "~A => ~A~%" key value)
 	     (setf (gethash key (config-items config)) value))))
+    (setf *config-loaded* t)
     (setf *config* config)))
 
 (defun print-config ()

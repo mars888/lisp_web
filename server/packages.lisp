@@ -23,7 +23,21 @@
 
 (defpackage server-config
   (:use :cl)
-  (:export :load-config
+  (:export :config-loaded-p
+           :load-config
+	   :load-default-config
 	   :print-config
 	   :has-item
 	   :get-item))
+
+(defpackage server-db
+  (:use :cl)
+  (:export :open-database
+	   :open-default-database
+	   :close-database
+	   :with-default-database))
+
+(defpackage server-model
+  (:use :cl)
+  (:export :defmodel
+	   :scaffold-form))
