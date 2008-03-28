@@ -2,9 +2,16 @@
 
 (defvar *model-specs* (make-hash-table :test 'equal))
 
+(defclass BaseModel ()
+  ())
+
+
 (defclass DBField ()
   ((field-name :initarg :field-name
-	       :reader field-name))
+	       :reader field-name)
+   (field-type :initarg :field-type
+	       :reader field-type
+	       :type string))
   (:documentation "Represents a database field for scaffolding."))
 
 (defclass KeyField (DBField)
@@ -39,12 +46,12 @@
     (typecase type
       (cons (setf type (first type))))
     (case kind
-      (:key (make-instance 'keyfield :field-name (first spec)))
-      (:join (make-instance 'joinfield :field-name (first spec)))
+      (:key (make-instance 'keyfield :field-name (first spec) :field-type "integer"))
+      (:join (make-instance 'joinfield :field-name (first spec) :field-type "join"))
       (t (let ((type-string (string-downcase (symbol-name type))))
 	   (cond 
-	     ((equal type-string "varchar") (make-instance 'stringfield :field-name (first spec)))
-	     ((equal type-string "string")  (make-instance 'textareafield :field-name (first spec)))
+	     ((equal type-string "varchar") (make-instance 'stringfield :field-name (first spec) :field-type type-string))
+	     ((equal type-string "string")  (make-instance 'textareafield :field-name (first spec) :field-type type-string))
 	     (t (error (format nil "Unknown type for field ~A => ~A (~A)" spec (symbol-name type) (intern (symbol-name type)))))))))))
 
 (defun add-model-spec (name spec)
@@ -56,6 +63,7 @@
 
 
 (defmacro defmodel (class direct-superclasses slots &rest options)
+  (push 'basemodel direct-superclasses)
   `(progn 
      (add-model-spec ',class (quote ,slots))
      (clsql:def-view-class ,class ,direct-superclasses ,slots ,@options)))
@@ -124,10 +132,35 @@
     (cl-who:with-html-output (stream)
       (loop for field-spec in spec do
 	   (generate-label field-spec stream)
-	   (generate-field field-spec stream instance)))))
+	   (generate-field field-spec stream instance)
+	   (format stream "~%")))))
 
 
+(defmodel UserGroupSection ()
+  ((id          :db-kind :key
+		:db-constraints :not-null
+		:type integer
+		:initarg :id
+		:reader id)
+   (name        :type (clsql:varchar 255)
+		:initarg :name
+		:accessor name)
+   (symbol      :type (clsql:varchar 255)
+		:initarg :symbol
+ 	        :accessor symbol)
+   (description :type (string 32000)
+ 		:initarg :description
+ 		:accessor description)))
 
 
+(defmethod to-xml ((instance BaseModel) &key (stream *standard-output*) (proloque nil))
+  (let* ((model-spec (class-name (class-of instance)))
+	 (spec (gethash model-spec *model-specs*)))
+    (if proloque
+	(format stream "<?xml version=\"1.0\"?>~%"))
+    (format stream "<~(~A~)>~%" (symbol-name model-spec))
+    (loop for field-spec in spec do
+	 (format stream "  <~(~A~) type=\"~A\">~%    ~A~%  </~3:*~(~A~)>~%" (field-name field-spec) (field-type field-spec) (slot-value instance (field-name field-spec))))
+    (format stream "</~(~A~)>" (symbol-name model-spec))))
 
 
