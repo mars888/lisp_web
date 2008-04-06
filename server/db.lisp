@@ -17,7 +17,7 @@
 (defun close-database (db)
   (clsql:disconnect :database db))
 
-(defun open-default-database ()
+(defun open-config-database ()
   (let ((host (server-config:get-item "db-host"))
 	(name (server-config:get-item "db-name"))
 	(user (server-config:get-item "db-user"))
@@ -25,9 +25,8 @@
     ;; (format t "~A ~A ~A ~A~%" host name user pass)
     (open-database host name user pass)))
 
-(defmacro with-default-database ((database-var-name) &body body)
-  `(let ((,database-var-name (open-default-database)))
-     (clsql:locally-enable-sql-reader-syntax)
+(defmacro with-config-database ((database-var-name) &body body)
+  `(let ((,database-var-name (open-config-database)))
      (unwind-protect 
 	  (progn ,@body)
        (close-database ,database-var-name))))
@@ -47,27 +46,27 @@
   (print-unreadable-object (self stream :type t :identity t)
     (format stream "[~A]: \"~A\"" (id self) (name self))))
 
-(clsql:def-view-class Architect ()
-  ((id :db-kind :key
-       :db-constraints :not-null
-       :type integer
-       :initarg :id
-       :reader id)
-   (office-name :type (clsql:varchar 255)
-		:initarg :office-name
-		:accessor office-name)
-   (country-id  :type integer
-		:initarg :country-id
-		:initform nil
-		:accessor country-id
-		:column "country_id")
-   (country     :db-kind :join
-		:db-info (:join-class country
-			  :home-key country-id
-			  :foreign-key id
-			  :set nil)
-		:accessor country))
-  (:base-table "architects"))
+;; (clsql:def-view-class Architect ()
+;;   ((id :db-kind :key
+;;        :db-constraints :not-null
+;;        :type integer
+;;        :initarg :id
+;;        :reader id)
+;;    (office-name :type (clsql:varchar 255)
+;; 		:initarg :office-name
+;; 		:accessor office-name)
+;;    (country-id  :type integer
+;; 		:initarg :country-id
+;; 		:initform nil
+;; 		:accessor country-id
+;; 		:column "country_id")
+;;    (country     :db-kind :join
+;; 		:db-info (:join-class country
+;; 			  :home-key country-id
+;; 			  :foreign-key id
+;; 			  :set nil)
+;; 		:accessor country))
+;;   (:base-table "architects"))
 
 ;; (with-default-database (db)
 ;;   (clsql:start-sql-recording :type :both :database db)

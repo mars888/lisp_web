@@ -35,9 +35,39 @@
   (:export :open-database
 	   :open-default-database
 	   :close-database
-	   :with-default-database))
+	   :with-config-database))
 
 (defpackage server-model
   (:use :cl)
-  (:export :defmodel
-	   :scaffold-form))
+  (:export :dbmodel
+	   :name
+	   :plural-name
+	   :table-name
+	   :fields
+
+	   :dbfield
+	   :field-name
+	   :field-type
+
+	   :keyfield
+	   :editablefield
+	   :stringfield
+	   :textareafield
+	   :relationfield
+	   :joinfield
+	   :basemodel
+	   :keyfieldp
+
+	   :find-model-spec
+	   :list-model-specs
+	   :find-key-field
+           :defmodel
+	   :to-xml))
+
+(defpackage server-scaffold
+  (:use :cl
+	:server-db
+	:server-model)
+  (:export :defscaffold
+	   :defscaffold-index
+	   :defscaffold-show))
